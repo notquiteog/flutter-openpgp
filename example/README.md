@@ -1,3 +1,3 @@
 # OpenPGP Example
 
-Demonstrates how to use the openpgp plugin.
+Example Flutter application showing how to use the OpenPGP plugin.
