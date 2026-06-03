@@ -421,7 +421,7 @@ jobs:
           else
             git commit -m "chore: rebuild all native libs with PQC support (MLDSA/MLKEM)"
             for i in 1 2 3 4 5; do
-              git pull --rebase origin master && git push && break
+              git pull --rebase origin main && git push && break
               echo "Push attempt $i failed, retrying in 10s..."
               sleep 10
             done
