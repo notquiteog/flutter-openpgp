@@ -11,60 +11,60 @@ class EncryptAndDecryptFile extends StatefulWidget {
   const EncryptAndDecryptFile({
     super.key,
     required this.title,
-    required KeyPair? keyPair,
-  }) : keyPair = keyPair;
+    required this.keyPair,
+  });
 
   final KeyPair? keyPair;
   final String title;
 
   @override
-  _EncryptAndDecryptFileState createState() => _EncryptAndDecryptFileState();
+  State<EncryptAndDecryptFile> createState() => _EncryptAndDecryptFileState();
 }
 
 class _EncryptAndDecryptFileState extends State<EncryptAndDecryptFile> {
   String _encrypted = "";
   String _decrypted = "";
 
-  _encrypt() async {
+  Future<void> _encrypt() async {
     String inputPath = "/home/usuario/Desktop/zip/sample.zip";
     File input = File(inputPath);
-    print("start");
+    debugPrint("start");
     var encrypted = await OpenPGP.encryptBytes(
       input.readAsBytesSync(),
       widget.keyPair!.publicKey,
       fileHints: FileHints()..isBinary = true,
     );
-    print("end");
+    debugPrint("end");
     String outputPath = "$inputPath.encrypted";
-    print("output $outputPath");
+    debugPrint("output $outputPath");
     File output = File(outputPath);
     await output.writeAsBytes(encrypted);
 
     await File("$inputPath.pub").writeAsString(widget.keyPair!.publicKey);
     await File("$inputPath.key").writeAsString(widget.keyPair!.privateKey);
 
-    print("saved");
+    debugPrint("saved");
     setState(() {
       _encrypted = "saved in $outputPath";
     });
   }
 
-  _decrypt() async {
+  Future<void> _decrypt() async {
     {
       String inputPath = "/home/usuario/Desktop/zip/sample.zip.encrypted";
       File input = File(inputPath);
-      print("start");
+      debugPrint("start");
       var decrypted = await OpenPGP.decryptBytes(
         input.readAsBytesSync(),
         widget.keyPair!.privateKey,
         passphrase,
       );
-      print("end");
+      debugPrint("end");
       String outputPath = "$inputPath.decrypted.zip";
-      print("output $outputPath");
+      debugPrint("output $outputPath");
       File output = File(outputPath);
       await output.writeAsBytes(decrypted);
-      print("saved");
+      debugPrint("saved");
       setState(() {
         _decrypted = "saved in $outputPath";
       });

@@ -7,7 +7,6 @@ import 'package:openpgp/openpgp.dart';
 import 'package:openpgp_example/encrypt_sign_decrypt_verify.dart';
 import 'package:openpgp_example/encrypt_decrypt.dart';
 import 'package:openpgp_example/encrypt_decrypt_bytes.dart';
-import 'package:openpgp_example/encrypt_decrypt_file.dart';
 import 'package:openpgp_example/encrypt_decrypt_symmetric.dart';
 import 'package:openpgp_example/encrypt_decrypt_symmetric_bytes.dart';
 import 'package:openpgp_example/generate.dart';
@@ -33,7 +32,7 @@ class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
-  _MyAppState createState() => _MyAppState();
+  State<MyApp> createState() => _MyAppState();
 }
 
 const publicKey = '''
@@ -111,9 +110,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('OpenPGP example app'),
-        ),
+        appBar: AppBar(title: const Text('OpenPGP example app')),
         body: ListView(
           key: Key('list'),
           children: <Widget>[
@@ -127,12 +124,6 @@ class _MyAppState extends State<MyApp> {
               keyPair: _defaultKeyPair,
               key: Key("encrypt-sign-decrypt-verify"),
             ),
-            if (false)
-              EncryptAndDecryptFile(
-                title: "Encrypt And Decrypt file",
-                keyPair: _defaultKeyPair,
-                key: Key("encrypt-decrypt-file"),
-              ),
             EncryptAndDecryptBytes(
               title: "Encrypt And Decrypt Bytes",
               keyPair: _defaultKeyPair,
@@ -168,10 +159,7 @@ class _MyAppState extends State<MyApp> {
               keyPair: _defaultKeyPair,
               key: Key("sign-verify-data-bytes"),
             ),
-            Generate(
-              title: "Generate",
-              key: Key("generate"),
-            ),
+            Generate(title: "Generate", key: Key("generate")),
             Convert(
               title: "Convert",
               key: Key("convert"),
@@ -182,10 +170,7 @@ class _MyAppState extends State<MyApp> {
               key: Key("metadata"),
               keyPair: _defaultKeyPair,
             ),
-            Armor(
-              title: "Armor",
-              key: Key("armor"),
-            ),
+            Armor(title: "Armor", key: Key("armor")),
           ],
         ),
       ),

@@ -1,7 +1,10 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:openpgp/model/bridge_model_generated.dart' as model;
+import 'package:openpgp/openpgp.dart' as openpgp;
 import 'package:openpgp_example/main.dart' as app;
 
 void main() {
@@ -13,6 +16,45 @@ void main() {
 
     var dyScroll = 200.0;
     final list = find.byType(Scrollable).first;
+
+    group('Generate', () {
+      testWidgets(
+        'Default',
+        (WidgetTester tester) async {
+          final instance = app.MyApp();
+          await tester.pumpWidget(instance);
+          await tester.pumpAndSettle();
+
+          const channel = MethodChannel('openpgp');
+          final messenger =
+              TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+          messenger.setMockMethodCallHandler(channel, (call) async {
+            expect(call.method, 'generate');
+            return model.KeyPairResponseObjectBuilder(
+              output: model.KeyPairObjectBuilder(
+                publicKey: 'test public key',
+                privateKey: 'test private key',
+              ),
+            ).toBytes();
+          });
+          addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+
+          final keyPair = await openpgp.OpenPGP.generate(
+            options: openpgp.Options()
+              ..name = 'test'
+              ..email = 'test@test.com'
+              ..passphrase = 'test'
+              ..keyOptions = (openpgp.KeyOptions()
+                ..algorithm = openpgp.Algorithm.EDDSA),
+          );
+
+          expect(keyPair.publicKey, 'test public key');
+          expect(keyPair.privateKey, 'test private key');
+        },
+        timeout: Timeout(Duration(seconds: 60)),
+        skip: !kIsWeb,
+      );
+    });
 
     group('Encrypt and Decrypt', () {
       final parent = find.byKey(ValueKey("encrypt-decrypt"));
@@ -30,16 +72,23 @@ void main() {
         await tester.pumpAndSettle();
 
         await tester.enterText(
-            find.descendant(
-                of: container, matching: find.byKey(ValueKey("message"))),
-            input);
+          find.descendant(
+            of: container,
+            matching: find.byKey(ValueKey("message")),
+          ),
+          input,
+        );
         await tester.tap(
           find.descendant(
-              of: container, matching: find.byKey(ValueKey("button"))),
+            of: container,
+            matching: find.byKey(ValueKey("button")),
+          ),
         );
         await tester.pumpAndSettle(Duration(seconds: 3));
         var resultSelector = find.descendant(
-            of: container, matching: find.byKey(ValueKey("result")));
+          of: container,
+          matching: find.byKey(ValueKey("result")),
+        );
 
         await expectLater(resultSelector, findsWidgets);
         var result = resultSelector.evaluate().single.widget as Text;
@@ -54,11 +103,15 @@ void main() {
 
         await tester.tap(
           find.descendant(
-              of: container, matching: find.byKey(ValueKey("button"))),
+            of: container,
+            matching: find.byKey(ValueKey("button")),
+          ),
         );
         await tester.pumpAndSettle(Duration(seconds: 3));
         resultSelector = find.descendant(
-            of: container, matching: find.byKey(ValueKey("result")));
+          of: container,
+          matching: find.byKey(ValueKey("result")),
+        );
         await expectLater(resultSelector, findsWidgets);
 
         result = resultSelector.evaluate().single.widget as Text;
@@ -82,16 +135,23 @@ void main() {
         await tester.pumpAndSettle();
 
         await tester.enterText(
-            find.descendant(
-                of: container, matching: find.byKey(ValueKey("message"))),
-            input);
+          find.descendant(
+            of: container,
+            matching: find.byKey(ValueKey("message")),
+          ),
+          input,
+        );
         await tester.tap(
           find.descendant(
-              of: container, matching: find.byKey(ValueKey("button"))),
+            of: container,
+            matching: find.byKey(ValueKey("button")),
+          ),
         );
         await tester.pumpAndSettle(Duration(seconds: 3));
         var resultSelector = find.descendant(
-            of: container, matching: find.byKey(ValueKey("result")));
+          of: container,
+          matching: find.byKey(ValueKey("result")),
+        );
 
         await expectLater(resultSelector, findsWidgets);
         var result = resultSelector.evaluate().single.widget as Text;
@@ -106,11 +166,15 @@ void main() {
 
         await tester.tap(
           find.descendant(
-              of: container, matching: find.byKey(ValueKey("button"))),
+            of: container,
+            matching: find.byKey(ValueKey("button")),
+          ),
         );
         await tester.pumpAndSettle(Duration(seconds: 3));
         resultSelector = find.descendant(
-            of: container, matching: find.byKey(ValueKey("result")));
+          of: container,
+          matching: find.byKey(ValueKey("result")),
+        );
         await expectLater(resultSelector, findsWidgets);
 
         result = resultSelector.evaluate().single.widget as Text;
@@ -134,17 +198,24 @@ void main() {
         await tester.pumpAndSettle();
 
         await tester.enterText(
-            find.descendant(
-                of: container, matching: find.byKey(ValueKey("message"))),
-            input);
+          find.descendant(
+            of: container,
+            matching: find.byKey(ValueKey("message")),
+          ),
+          input,
+        );
         await tester.tap(
           find.descendant(
-              of: container, matching: find.byKey(ValueKey("button"))),
+            of: container,
+            matching: find.byKey(ValueKey("button")),
+          ),
         );
         await tester.pumpAndSettle(Duration(seconds: 3));
 
         var resultSelector = find.descendant(
-            of: container, matching: find.byKey(ValueKey("result")));
+          of: container,
+          matching: find.byKey(ValueKey("result")),
+        );
         expect(resultSelector, findsOneWidget);
         var result = resultSelector.evaluate().single.widget as Text;
         expect(result.data != "", equals(true));
@@ -158,11 +229,15 @@ void main() {
 
         await tester.tap(
           find.descendant(
-              of: container, matching: find.byKey(ValueKey("button"))),
+            of: container,
+            matching: find.byKey(ValueKey("button")),
+          ),
         );
         await tester.pumpAndSettle(Duration(seconds: 3));
         resultSelector = find.descendant(
-            of: container, matching: find.byKey(ValueKey("result")));
+          of: container,
+          matching: find.byKey(ValueKey("result")),
+        );
         expect(resultSelector, findsOneWidget);
         result = resultSelector.evaluate().single.widget as Text;
         expect(result.data != "", equals(true));
@@ -185,17 +260,24 @@ void main() {
         await tester.pumpAndSettle();
 
         await tester.enterText(
-            find.descendant(
-                of: container, matching: find.byKey(ValueKey("message"))),
-            input);
+          find.descendant(
+            of: container,
+            matching: find.byKey(ValueKey("message")),
+          ),
+          input,
+        );
         await tester.tap(
           find.descendant(
-              of: container, matching: find.byKey(ValueKey("button"))),
+            of: container,
+            matching: find.byKey(ValueKey("button")),
+          ),
         );
         await tester.pumpAndSettle(Duration(seconds: 3));
 
         var resultSelector = find.descendant(
-            of: container, matching: find.byKey(ValueKey("result")));
+          of: container,
+          matching: find.byKey(ValueKey("result")),
+        );
         expect(resultSelector, findsOneWidget);
         var result = resultSelector.evaluate().single.widget as Text;
         expect(result.data != "", equals(true));
@@ -209,11 +291,15 @@ void main() {
 
         await tester.tap(
           find.descendant(
-              of: container, matching: find.byKey(ValueKey("button"))),
+            of: container,
+            matching: find.byKey(ValueKey("button")),
+          ),
         );
         await tester.pumpAndSettle(Duration(seconds: 3));
         resultSelector = find.descendant(
-            of: container, matching: find.byKey(ValueKey("result")));
+          of: container,
+          matching: find.byKey(ValueKey("result")),
+        );
         expect(resultSelector, findsOneWidget);
         result = resultSelector.evaluate().single.widget as Text;
         expect(result.data, equals(input));
@@ -236,16 +322,23 @@ void main() {
         await tester.pumpAndSettle();
 
         await tester.enterText(
-            find.descendant(
-                of: container, matching: find.byKey(ValueKey("message"))),
-            input);
+          find.descendant(
+            of: container,
+            matching: find.byKey(ValueKey("message")),
+          ),
+          input,
+        );
         await tester.tap(
           find.descendant(
-              of: container, matching: find.byKey(ValueKey("button"))),
+            of: container,
+            matching: find.byKey(ValueKey("button")),
+          ),
         );
         await tester.pumpAndSettle(Duration(seconds: 3));
         var resultSelector = find.descendant(
-            of: container, matching: find.byKey(ValueKey("result")));
+          of: container,
+          matching: find.byKey(ValueKey("result")),
+        );
         expect(resultSelector, findsOneWidget);
         var result = resultSelector.evaluate().single.widget as Text;
         expect(result.data != "", equals(true));
@@ -259,11 +352,15 @@ void main() {
 
         await tester.tap(
           find.descendant(
-              of: container, matching: find.byKey(ValueKey("button"))),
+            of: container,
+            matching: find.byKey(ValueKey("button")),
+          ),
         );
         await tester.pumpAndSettle(Duration(seconds: 3));
         resultSelector = find.descendant(
-            of: container, matching: find.byKey(ValueKey("result")));
+          of: container,
+          matching: find.byKey(ValueKey("result")),
+        );
         expect(resultSelector, findsOneWidget);
         result = resultSelector.evaluate().single.widget as Text;
         expect(result.data, equals(input));
@@ -286,16 +383,23 @@ void main() {
         await tester.pumpAndSettle();
 
         await tester.enterText(
-            find.descendant(
-                of: container, matching: find.byKey(ValueKey("message"))),
-            input);
+          find.descendant(
+            of: container,
+            matching: find.byKey(ValueKey("message")),
+          ),
+          input,
+        );
         await tester.tap(
           find.descendant(
-              of: container, matching: find.byKey(ValueKey("button"))),
+            of: container,
+            matching: find.byKey(ValueKey("button")),
+          ),
         );
         await tester.pumpAndSettle(Duration(seconds: 3));
         var resultSelector = find.descendant(
-            of: container, matching: find.byKey(ValueKey("result")));
+          of: container,
+          matching: find.byKey(ValueKey("result")),
+        );
         expect(resultSelector, findsOneWidget);
         var result = resultSelector.evaluate().single.widget as Text;
         expect(result.data != "", equals(true));
@@ -309,11 +413,15 @@ void main() {
 
         await tester.tap(
           find.descendant(
-              of: container, matching: find.byKey(ValueKey("button"))),
+            of: container,
+            matching: find.byKey(ValueKey("button")),
+          ),
         );
         await tester.pumpAndSettle(Duration(seconds: 3));
         resultSelector = find.descendant(
-            of: container, matching: find.byKey(ValueKey("result")));
+          of: container,
+          matching: find.byKey(ValueKey("result")),
+        );
         expect(resultSelector, findsOneWidget);
         result = resultSelector.evaluate().single.widget as Text;
         expect(result.data, "VALID");
@@ -336,16 +444,23 @@ void main() {
         await tester.pumpAndSettle();
 
         await tester.enterText(
-            find.descendant(
-                of: container, matching: find.byKey(ValueKey("message"))),
-            input);
+          find.descendant(
+            of: container,
+            matching: find.byKey(ValueKey("message")),
+          ),
+          input,
+        );
         await tester.tap(
           find.descendant(
-              of: container, matching: find.byKey(ValueKey("button"))),
+            of: container,
+            matching: find.byKey(ValueKey("button")),
+          ),
         );
         await tester.pumpAndSettle(Duration(seconds: 3));
         var resultSelector = find.descendant(
-            of: container, matching: find.byKey(ValueKey("result")));
+          of: container,
+          matching: find.byKey(ValueKey("result")),
+        );
         expect(resultSelector, findsOneWidget);
         var result = resultSelector.evaluate().single.widget as Text;
         expect(result.data != "", equals(true));
@@ -359,11 +474,15 @@ void main() {
 
         await tester.tap(
           find.descendant(
-              of: container, matching: find.byKey(ValueKey("button"))),
+            of: container,
+            matching: find.byKey(ValueKey("button")),
+          ),
         );
         await tester.pumpAndSettle(Duration(seconds: 3));
         resultSelector = find.descendant(
-            of: container, matching: find.byKey(ValueKey("result")));
+          of: container,
+          matching: find.byKey(ValueKey("result")),
+        );
         expect(resultSelector, findsOneWidget);
         result = resultSelector.evaluate().single.widget as Text;
         expect(result.data, "VALID");
@@ -386,16 +505,23 @@ void main() {
         await tester.pumpAndSettle();
 
         await tester.enterText(
-            find.descendant(
-                of: container, matching: find.byKey(ValueKey("message"))),
-            input);
+          find.descendant(
+            of: container,
+            matching: find.byKey(ValueKey("message")),
+          ),
+          input,
+        );
         await tester.tap(
           find.descendant(
-              of: container, matching: find.byKey(ValueKey("button"))),
+            of: container,
+            matching: find.byKey(ValueKey("button")),
+          ),
         );
         await tester.pumpAndSettle(Duration(seconds: 3));
         var resultSelector = find.descendant(
-            of: container, matching: find.byKey(ValueKey("result")));
+          of: container,
+          matching: find.byKey(ValueKey("result")),
+        );
         expect(resultSelector, findsOneWidget);
         var result = resultSelector.evaluate().single.widget as Text;
         expect(result.data != "", equals(true));
@@ -409,11 +535,15 @@ void main() {
 
         await tester.tap(
           find.descendant(
-              of: container, matching: find.byKey(ValueKey("button"))),
+            of: container,
+            matching: find.byKey(ValueKey("button")),
+          ),
         );
         await tester.pumpAndSettle(Duration(seconds: 3));
         resultSelector = find.descendant(
-            of: container, matching: find.byKey(ValueKey("result")));
+          of: container,
+          matching: find.byKey(ValueKey("result")),
+        );
         expect(resultSelector, findsOneWidget);
         result = resultSelector.evaluate().single.widget as Text;
         expect(result.data, "VALID");
@@ -436,16 +566,23 @@ void main() {
         await tester.pumpAndSettle();
 
         await tester.enterText(
-            find.descendant(
-                of: container, matching: find.byKey(ValueKey("message"))),
-            input);
+          find.descendant(
+            of: container,
+            matching: find.byKey(ValueKey("message")),
+          ),
+          input,
+        );
         await tester.tap(
           find.descendant(
-              of: container, matching: find.byKey(ValueKey("button"))),
+            of: container,
+            matching: find.byKey(ValueKey("button")),
+          ),
         );
         await tester.pumpAndSettle(Duration(seconds: 3));
         var resultSelector = find.descendant(
-            of: container, matching: find.byKey(ValueKey("result")));
+          of: container,
+          matching: find.byKey(ValueKey("result")),
+        );
         expect(resultSelector, findsOneWidget);
         var result = resultSelector.evaluate().single.widget as Text;
         expect(result.data != "", equals(true));
@@ -459,47 +596,19 @@ void main() {
 
         await tester.tap(
           find.descendant(
-              of: container, matching: find.byKey(ValueKey("button"))),
+            of: container,
+            matching: find.byKey(ValueKey("button")),
+          ),
         );
         await tester.pumpAndSettle(Duration(seconds: 3));
         resultSelector = find.descendant(
-            of: container, matching: find.byKey(ValueKey("result")));
+          of: container,
+          matching: find.byKey(ValueKey("result")),
+        );
         expect(resultSelector, findsOneWidget);
         result = resultSelector.evaluate().single.widget as Text;
         expect(result.data, "VALID");
       }, timeout: Timeout(Duration(seconds: 60)));
-    });
-
-    group('Generate', () {
-      final parent = find.byKey(ValueKey("generate"));
-
-      // Skipped on web: debug-mode Go WASM keygen exceeds 120 s even for
-      // ECC keys (EdDSA+ECDH) on CI runners. flutter drive --profile strips
-      // exception details and breaks unrelated tests. All 9 other crypto
-      // operations run on web; Generate is covered on 5 native platforms.
-      testWidgets('Default', (WidgetTester tester) async {
-        final instance = app.MyApp();
-        await tester.pumpWidget(instance);
-        await tester.pumpAndSettle();
-
-        final container = find.descendant(
-          of: parent,
-          matching: find.byKey(ValueKey("action")),
-        );
-        await tester.scrollUntilVisible(container, dyScroll, scrollable: list);
-        await tester.pumpAndSettle();
-
-        await tester.tap(
-          find.descendant(
-              of: container, matching: find.byKey(ValueKey("button"))),
-        );
-        await tester.pumpAndSettle(Duration(seconds: 60));
-        var resultSelector = find.descendant(
-            of: container, matching: find.byKey(ValueKey("result")));
-        expect(resultSelector, findsOneWidget);
-        var result = resultSelector.evaluate().single.widget as Text;
-        expect(result.data != "", equals(true));
-      }, timeout: Timeout(Duration(minutes: 5)), skip: kIsWeb);
     });
   });
 }

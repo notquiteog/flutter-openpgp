@@ -10,14 +10,14 @@ class SignAndVerifyData extends StatefulWidget {
   const SignAndVerifyData({
     super.key,
     required this.title,
-    required KeyPair? keyPair,
-  }) : keyPair = keyPair;
+    required this.keyPair,
+  });
 
   final KeyPair? keyPair;
   final String title;
 
   @override
-  _SignAndVerifyDataState createState() => _SignAndVerifyDataState();
+  State<SignAndVerifyData> createState() => _SignAndVerifyDataState();
 }
 
 class _SignAndVerifyDataState extends State<SignAndVerifyData> {

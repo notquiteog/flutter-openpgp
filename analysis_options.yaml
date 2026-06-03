@@ -4,3 +4,7 @@ analyzer:
   exclude:
     - example/**
     - lib/model/**   # generated FlatBuffers code
+
+linter:
+  rules:
+    constant_identifier_names: false

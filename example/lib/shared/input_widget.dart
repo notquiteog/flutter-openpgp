@@ -15,7 +15,7 @@ class InputWidget extends StatefulWidget {
   final String result;
 
   @override
-  _InputWidgetState createState() => _InputWidgetState();
+  State<InputWidget> createState() => _InputWidgetState();
 }
 
 class _InputWidgetState extends State<InputWidget> {
@@ -63,14 +63,8 @@ class _InputWidgetState extends State<InputWidget> {
             child: Text(widget.title),
           ),
           (_loading)
-              ? Text(
-                  widget.result,
-                  key: Key("loading"),
-                )
-              : Text(
-                  widget.result,
-                  key: Key("result"),
-                )
+              ? Text(widget.result, key: Key("loading"))
+              : Text(widget.result, key: Key("result")),
         ],
       ),
     );

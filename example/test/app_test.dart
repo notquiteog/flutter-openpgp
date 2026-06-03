@@ -13,10 +13,27 @@ void main() {
     var keyPair = await OpenPGP.generate(options: options);
 
     expect(keyPair, isNotNull, reason: "Key pair generation failed.");
-    expect(keyPair.publicKey, isNotEmpty,
-        reason: "Public key should not be empty.");
-    expect(keyPair.privateKey, isNotEmpty,
-        reason: "Private key should not be empty.");
+    expect(
+      keyPair.publicKey,
+      isNotEmpty,
+      reason: "Public key should not be empty.",
+    );
+    expect(
+      keyPair.privateKey,
+      isNotEmpty,
+      reason: "Private key should not be empty.",
+    );
+  });
+
+  test('Generate EdDSA Keypair', () async {
+    final edDsaOptions = Options()
+      ..email = "eddsa@sample.com"
+      ..keyOptions = (KeyOptions()..algorithm = Algorithm.EDDSA);
+
+    final keyPair = await OpenPGP.generate(options: edDsaOptions);
+
+    expect(keyPair.publicKey, isNotEmpty);
+    expect(keyPair.privateKey, isNotEmpty);
   });
 
   test('Encrypt/Decrypt', () async {
@@ -34,12 +51,16 @@ void main() {
     );
 
     expect(keyPair, isNotNull, reason: "Key pair generation failed.");
-    expect(keyPair.publicKey, isNotEmpty,
-        reason: "Public key should not be empty.");
-    expect(keyPair.privateKey, isNotEmpty,
-        reason: "Private key should not be empty.");
-
-    print(keyPair.privateKey);
+    expect(
+      keyPair.publicKey,
+      isNotEmpty,
+      reason: "Public key should not be empty.",
+    );
+    expect(
+      keyPair.privateKey,
+      isNotEmpty,
+      reason: "Private key should not be empty.",
+    );
   });
 
   // ── PQC tests ──────────────────────────────────────────────────────────────

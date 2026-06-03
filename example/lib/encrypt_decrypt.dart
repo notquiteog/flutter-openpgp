@@ -10,14 +10,14 @@ class EncryptAndDecrypt extends StatefulWidget {
   const EncryptAndDecrypt({
     super.key,
     required this.title,
-    required KeyPair? keyPair,
-  }) : keyPair = keyPair;
+    required this.keyPair,
+  });
 
   final KeyPair? keyPair;
   final String title;
 
   @override
-  _EncryptAndDecryptState createState() => _EncryptAndDecryptState();
+  State<EncryptAndDecrypt> createState() => _EncryptAndDecryptState();
 }
 
 class _EncryptAndDecryptState extends State<EncryptAndDecrypt> {
@@ -46,7 +46,7 @@ class _EncryptAndDecryptState extends State<EncryptAndDecrypt> {
                     _encrypted = encrypted;
                   });
                 } catch (e) {
-                  print(e);
+                  debugPrint(e.toString());
                 }
               },
             ),

@@ -10,14 +10,14 @@ class EncryptAndDecryptSymmetric extends StatefulWidget {
   const EncryptAndDecryptSymmetric({
     super.key,
     required this.title,
-    required KeyPair? keyPair,
-  }) : keyPair = keyPair;
+    required this.keyPair,
+  });
 
   final KeyPair? keyPair;
   final String title;
 
   @override
-  _EncryptAndDecryptSymmetricState createState() =>
+  State<EncryptAndDecryptSymmetric> createState() =>
       _EncryptAndDecryptSymmetricState();
 }
 

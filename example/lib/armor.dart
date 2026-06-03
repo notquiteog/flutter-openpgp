@@ -9,15 +9,12 @@ import 'package:openpgp_example/shared/title_widget.dart';
 import 'package:openpgp_example/shared/input_widget.dart';
 
 class Armor extends StatefulWidget {
-  const Armor({
-    super.key,
-    required this.title,
-  });
+  const Armor({super.key, required this.title});
 
   final String title;
 
   @override
-  _ArmorState createState() => _ArmorState();
+  State<Armor> createState() => _ArmorState();
 }
 
 class _ArmorState extends State<Armor> {
@@ -53,15 +50,13 @@ class _ArmorState extends State<Armor> {
               result: _decoded,
               onPressed: () async {
                 try {
-                  var decoded = await OpenPGP.armorDecode(
-                    _encoded,
-                  );
+                  var decoded = await OpenPGP.armorDecode(_encoded);
 
                   setState(() {
                     _decoded = "${decoded.type}: ${utf8.decode(decoded.body)}";
                   });
                 } on OpenPGPException catch (e) {
-                  print(e);
+                  debugPrint(e.toString());
                 }
               },
             ),

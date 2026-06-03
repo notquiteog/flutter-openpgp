@@ -96,8 +96,8 @@ func prepStr(b *flatbuffers.Builder, fieldIdx int, off flatbuffers.UOffsetT) {
 
 // stringResponse serialises { output: string, error: string }.
 func stringResponse(output, errMsg string) []byte {
-	b := flatbuffers.NewBuilder(256)
-	outOff := strOffset(b, output)
+	b := flatbuffers.NewBuilder(256 + len(output))
+	outOff := b.CreateString(output)
 	errOff := strOffset(b, errMsg)
 	b.StartObject(2)
 	prepStr(b, 0, outOff)
@@ -110,7 +110,7 @@ func stringResponse(output, errMsg string) []byte {
 // bytesResponse serialises { output: [byte], error: string }.
 func bytesResponse(output []byte, errMsg string) []byte {
 	b := flatbuffers.NewBuilder(256 + len(output))
-	outOff := bytesOffset(b, output)
+	outOff := b.CreateByteVector(output)
 	errOff := strOffset(b, errMsg)
 	b.StartObject(2)
 	b.PrependUOffsetTSlot(0, outOff, 0)

@@ -7,17 +7,13 @@ import 'package:openpgp_example/shared/input_widget.dart';
 import 'package:openpgp_example/shared/title_widget.dart';
 
 class SignAndVerify extends StatefulWidget {
-  const SignAndVerify({
-    super.key,
-    required this.title,
-    required KeyPair? keyPair,
-  }) : keyPair = keyPair;
+  const SignAndVerify({super.key, required this.title, required this.keyPair});
 
   final KeyPair? keyPair;
   final String title;
 
   @override
-  _SignAndVerifyState createState() => _SignAndVerifyState();
+  State<SignAndVerify> createState() => _SignAndVerifyState();
 }
 
 class _SignAndVerifyState extends State<SignAndVerify> {

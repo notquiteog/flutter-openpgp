@@ -1,16 +1,15 @@
 import 'dart:async';
 import 'dart:ffi';
-import 'dart:io' show Platform;
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:openpgp/bridge/ffi.dart';
 import 'package:openpgp/bridge/isolate.dart';
 import 'package:openpgp/openpgp.dart';
-import 'package:flutter/foundation.dart';
-import 'package:path/path.dart' as Path;
+import 'package:path/path.dart' as path;
 
 class Binding {
   static final String _callFuncName = 'OpenPGPBridgeCall';
@@ -33,11 +32,13 @@ class Binding {
 
   Binding._internal() {
     _library = openLib();
-    _bridgeCall =
-        _library.lookupFunction<BridgeCallC, BridgeCallDart>(_callFuncName);
+    _bridgeCall = _library.lookupFunction<BridgeCallC, BridgeCallDart>(
+      _callFuncName,
+    );
     try {
-      _freeResult =
-          _library.lookupFunction<FreeResultC, FreeResultDart>('OpenPGPFreeResult');
+      _freeResult = _library.lookupFunction<FreeResultC, FreeResultDart>(
+        'OpenPGPFreeResult',
+      );
     } catch (_) {
       // Symbol absent in older native builds; freeResult falls back to
       // Dart-side malloc.free until natives are rebuilt.
@@ -118,15 +119,19 @@ class Binding {
     final payloadPointer = malloc.allocate<Uint8>(payload.length);
     payloadPointer.asTypedList(payload.length).setAll(0, payload);
 
-    final result =
-        _bridgeCall(namePointer, payloadPointer.cast<Void>(), payload.length);
+    final result = _bridgeCall(
+      namePointer,
+      payloadPointer.cast<Void>(),
+      payload.length,
+    );
 
     malloc.free(namePointer);
     malloc.free(payloadPointer);
 
     if (result.address == 0) {
       throw OpenPGPException(
-          'FFI function $_callFuncName returned null pointer.');
+        'FFI function $_callFuncName returned null pointer.',
+      );
     }
 
     handleError(result.ref.errorMessage, result);
@@ -175,8 +180,9 @@ class Binding {
     if (!File(path).existsSync()) {
       debugPrint('dynamic library not found: $path');
       throw Exception(
-          'In order to run unit tests, run the project first: '
-          '"flutter run -d ${Platform.operatingSystem}"');
+        'In order to run unit tests, run the project first: '
+        '"flutter run -d ${Platform.operatingSystem}"',
+      );
     }
   }
 
@@ -204,10 +210,15 @@ class Binding {
           return DynamicLibrary.open('$_libraryName.dylib');
         }
         // Unit test: executable is the Dart VM, use CWD-relative build path.
-        final appDirectory =
-            _findAppDirectory(Directory('build/macos/Build/Products/Debug'));
-        final ffiFile = Path.join(
-            appDirectory.path, 'Contents', 'Frameworks', '$_libraryName.dylib');
+        final appDirectory = _findAppDirectory(
+          Directory('build/macos/Build/Products/Debug'),
+        );
+        final ffiFile = path.join(
+          appDirectory.path,
+          'Contents',
+          'Frameworks',
+          '$_libraryName.dylib',
+        );
         validateTestFFIFile(ffiFile);
         return DynamicLibrary.open(ffiFile);
       }
@@ -221,10 +232,10 @@ class Binding {
 
     if (Platform.isAndroid || Platform.isLinux) {
       if (isFlutterTest) {
-        final arch =
-            Platform.resolvedExecutable.contains('x64') ? 'x64' : 'arm64';
-        final ffiFile =
-            'build/linux/$arch/debug/bundle/lib/$_libraryName.so';
+        final arch = Platform.resolvedExecutable.contains('x64')
+            ? 'x64'
+            : 'arm64';
+        final ffiFile = 'build/linux/$arch/debug/bundle/lib/$_libraryName.so';
         validateTestFFIFile(ffiFile);
         return DynamicLibrary.open(ffiFile);
       }
@@ -234,8 +245,11 @@ class Binding {
           return DynamicLibrary.open('$_libraryName.so');
         } catch (e) {
           final binary = File('/proc/self/cmdline').readAsStringSync();
-          final suggestedFile =
-              Path.join(Path.dirname(binary), 'lib', '$_libraryName.so');
+          final suggestedFile = path.join(
+            path.dirname(binary),
+            'lib',
+            '$_libraryName.so',
+          );
           return DynamicLibrary.open(suggestedFile);
         }
       }
@@ -246,8 +260,7 @@ class Binding {
         } catch (e) {
           debugPrint('Falling back to absolute path for older Android devices');
           var appid = File('/proc/self/cmdline').readAsStringSync();
-          appid = String.fromCharCodes(
-              appid.codeUnits.where((c) => c != 0));
+          appid = String.fromCharCodes(appid.codeUnits.where((c) => c != 0));
           return DynamicLibrary.open('/data/data/$appid/lib/$_libraryName.so');
         }
       }
@@ -255,10 +268,17 @@ class Binding {
 
     if (Platform.isWindows) {
       if (isFlutterTest) {
-        final arch =
-            Platform.resolvedExecutable.contains('x64') ? 'x64' : 'arm64';
-        final ffiFile = Path.canonicalize(Path.join(
-            r'build\windows', arch, r'runner\Debug', '$_libraryName.dll'));
+        final arch = Platform.resolvedExecutable.contains('x64')
+            ? 'x64'
+            : 'arm64';
+        final ffiFile = path.canonicalize(
+          path.join(
+            r'build\windows',
+            arch,
+            r'runner\Debug',
+            '$_libraryName.dll',
+          ),
+        );
         validateTestFFIFile(ffiFile);
         return DynamicLibrary.open(ffiFile);
       }

@@ -4,17 +4,16 @@ class ButtonWidget extends StatefulWidget {
   const ButtonWidget({
     super.key,
     required this.result,
-    required String title,
-    required Function onPressed,
-  })  : onPressed = onPressed,
-        title = title;
+    required this.title,
+    required this.onPressed,
+  });
 
   final Function onPressed;
   final String title;
   final String result;
 
   @override
-  _ButtonWidgetState createState() => _ButtonWidgetState();
+  State<ButtonWidget> createState() => _ButtonWidgetState();
 }
 
 class _ButtonWidgetState extends State<ButtonWidget> {
@@ -37,14 +36,8 @@ class _ButtonWidgetState extends State<ButtonWidget> {
             child: Text(widget.title),
           ),
           (_loading)
-              ? Text(
-                  widget.result,
-                  key: Key("loading"),
-                )
-              : Text(
-                  widget.result,
-                  key: Key("result"),
-                )
+              ? Text(widget.result, key: Key("loading"))
+              : Text(widget.result, key: Key("result")),
         ],
       ),
     );

@@ -12,9 +12,7 @@ mixin OpenPGPResponseHandlers {
     if (response.error != null && response.error != '') {
       throw OpenPGPException(response.error!);
     }
-    final out = response.output;
-    if (out == null) _missingOutput('bytes');
-    return Uint8List.fromList(out);
+    return Uint8List.fromList(response.output ?? const []);
   }
 
   static String stringResponse(Uint8List data) {
@@ -22,6 +20,8 @@ mixin OpenPGPResponseHandlers {
     if (response.error != null && response.error != '') {
       throw OpenPGPException(response.error!);
     }
+    // Older native builds omit empty strings, so null remains a successful
+    // empty output for string responses.
     return response.output ?? '';
   }
 
@@ -90,7 +90,14 @@ mixin OpenPGPResponseHandlers {
   static List<Identity> _identities(List<model.Identity>? identities) {
     if (identities == null) return const [];
     return identities
-        .map((e) => Identity(e.id ?? '', e.name ?? '', e.comment ?? '', e.email ?? ''))
+        .map(
+          (e) => Identity(
+            e.id ?? '',
+            e.name ?? '',
+            e.comment ?? '',
+            e.email ?? '',
+          ),
+        )
         .toList();
   }
 

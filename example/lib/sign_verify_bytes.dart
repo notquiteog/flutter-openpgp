@@ -13,14 +13,14 @@ class SignAndVerifyBytes extends StatefulWidget {
   const SignAndVerifyBytes({
     super.key,
     required this.title,
-    required KeyPair? keyPair,
-  }) : keyPair = keyPair;
+    required this.keyPair,
+  });
 
   final KeyPair? keyPair;
   final String title;
 
   @override
-  _SignAndVerifyBytesState createState() => _SignAndVerifyBytesState();
+  State<SignAndVerifyBytes> createState() => _SignAndVerifyBytesState();
 }
 
 class _SignAndVerifyBytesState extends State<SignAndVerifyBytes> {

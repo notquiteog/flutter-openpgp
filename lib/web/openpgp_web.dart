@@ -12,10 +12,11 @@ class OpenpgpPlugin {
 
   static void registerWith(Registrar registrar) {
     final MethodChannel channel = MethodChannel(
-        'openpgp',
-        const StandardMethodCodec(),
-        // ignore: deprecated_member_use
-        registrar.messenger);
+      'openpgp',
+      const StandardMethodCodec(),
+      // ignore: deprecated_member_use
+      registrar.messenger,
+    );
     final OpenpgpPlugin instance = OpenpgpPlugin();
     instance.listen();
     channel.setMethodCallHandler(instance.handleMethodCall);
@@ -47,8 +48,8 @@ class OpenpgpPlugin {
     worker.onmessage = onMessage.toJS;
   }
 
-  // 120 s ceiling gives debug-mode Go WASM (which is far slower than native)
-  // room to complete key-generation on slow CI runners without hiding real hangs.
+  // Keep browser calls bounded; debug-mode Go WASM key generation can exceed
+  // this, so integration tests avoid relying on full browser keygen.
   static const Duration _timeout = Duration(seconds: 120);
 
   Future<Uint8List> bridgeCall(String name, Uint8List? /*!*/ request) {
@@ -56,11 +57,9 @@ class OpenpgpPlugin {
     var id = _counter.toString();
     var completer = Completer<Uint8List>();
     completers[id] = completer;
-    worker.postMessage(OpenpgpRequest(
-      id: id,
-      name: name,
-      request: request?.toJS,
-    ));
+    worker.postMessage(
+      OpenpgpRequest(id: id, name: name, request: request?.toJS),
+    );
     Future.delayed(_timeout, () {
       if (completers.containsKey(id)) {
         completers.remove(id);
@@ -78,11 +77,7 @@ extension type OpenpgpRequest._(JSObject _) implements JSObject {
   external String name;
   external JSUint8Array? request;
 
-  external OpenpgpRequest({
-    String id,
-    String name,
-    JSUint8Array? request,
-  });
+  external OpenpgpRequest({String id, String name, JSUint8Array? request});
 }
 
 @JS()
@@ -92,9 +87,5 @@ extension type OpenpgpResponse._(JSObject _) implements JSObject {
   external String? error;
   external JSUint8Array? response;
 
-  external OpenpgpResponse({
-    String id,
-    String? error,
-    JSUint8Array? response,
-  });
+  external OpenpgpResponse({String id, String? error, JSUint8Array? response});
 }

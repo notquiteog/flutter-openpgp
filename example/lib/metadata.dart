@@ -7,17 +7,13 @@ import 'package:openpgp_example/shared/button_widget.dart';
 import 'package:openpgp_example/shared/title_widget.dart';
 
 class Metadata extends StatefulWidget {
-  const Metadata({
-    super.key,
-    required this.title,
-    required KeyPair? keyPair,
-  }) : keyPair = keyPair;
+  const Metadata({super.key, required this.title, required this.keyPair});
 
   final KeyPair? keyPair;
   final String title;
 
   @override
-  _MetadataState createState() => _MetadataState();
+  State<Metadata> createState() => _MetadataState();
 }
 
 class _MetadataState extends State<Metadata> {

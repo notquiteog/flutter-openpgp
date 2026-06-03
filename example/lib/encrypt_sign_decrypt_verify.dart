@@ -10,14 +10,14 @@ class EncryptSignAndDecryptVerify extends StatefulWidget {
   const EncryptSignAndDecryptVerify({
     super.key,
     required this.title,
-    required KeyPair? keyPair,
-  }) : keyPair = keyPair;
+    required this.keyPair,
+  });
 
   final KeyPair? keyPair;
   final String title;
 
   @override
-  _EncryptSignAndDecryptVerifyState createState() =>
+  State<EncryptSignAndDecryptVerify> createState() =>
       _EncryptSignAndDecryptVerifyState();
 }
 
@@ -52,7 +52,7 @@ class _EncryptSignAndDecryptVerifyState
                     _encrypted = encrypted;
                   });
                 } catch (e) {
-                  print(e.toString());
+                  debugPrint(e.toString());
                 }
               },
             ),
@@ -74,7 +74,7 @@ class _EncryptSignAndDecryptVerifyState
                     _decrypted = decrypted;
                   });
                 } catch (e) {
-                  print(e.toString());
+                  debugPrint(e.toString());
                 }
               },
             ),

@@ -1,3 +1,9 @@
+## 3.12.4
+- Fix bridge response serialization so successful empty string/byte outputs are encoded as real response fields instead of looking absent on the Dart side
+- Fix web worker pending-request tracking so failed WASM reloads reject callers instead of leaving operations waiting for the Dart timeout
+- Clean root/example analyzer warnings and add focused bridge response, FlatBuffers, EdDSA generation, and web Generate bridge tests
+- Rebuild Linux x86_64 and WASM bridge binaries; all-platform native binary rebuild is wired to the `main` branch workflow
+
 ## 3.12.3
 - Fix (Windows): example `Generate` was requesting an RSA-2048 encryption subkey alongside an EdDSA primary key; switched to plain EdDSA+ECDH, which eliminates the 30 s FFI timeout on slow CI runners
 - Fix (iOS CI): add a 3-attempt retry loop (7 min per attempt) around `flutter test` to recover from the intermittent VM-Service hang (flutter/flutter#160930); `timeout-minutes: 30` on every job caps run cost
