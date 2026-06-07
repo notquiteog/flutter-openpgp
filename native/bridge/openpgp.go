@@ -13,6 +13,7 @@ import (
 	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/ProtonMail/go-crypto/openpgp/armor"
 	"github.com/ProtonMail/go-crypto/openpgp/clearsign"
+	pgperrors "github.com/ProtonMail/go-crypto/openpgp/errors"
 	"github.com/ProtonMail/go-crypto/openpgp/packet"
 	flatbuffers "github.com/google/flatbuffers/go"
 	"golang.org/x/text/encoding/ianaindex"
@@ -780,7 +781,15 @@ func callVerify(payload []byte) ([]byte, error) {
 		return errBoolResponse(err), nil
 	}
 	_, err = openpgp.CheckArmoredDetachedSignature(keyring, strings.NewReader(message), strings.NewReader(signature), nil)
-	if err != nil {
+	// ErrSignatureExpired / ErrKeyExpired are returned by go-crypto *after* the
+	// signature has already been cryptographically verified (see
+	// verifyDetachedSignature: VerifySignature must return nil before
+	// checkMessageSignatureDetails runs, and that func's doc explicitly says the
+	// caller may ignore these two errors). For sender proofs — authenticating who
+	// sent a stored message — expiry is irrelevant, and this also masks the
+	// intermittent V6/PQC "signature expired" misreport go-crypto emits for
+	// otherwise-valid signatures. Treat them as success; any other error fails.
+	if err != nil && err != pgperrors.ErrSignatureExpired && err != pgperrors.ErrKeyExpired {
 		return boolResponse(false, err.Error()), nil
 	}
 	return boolResponse(true, ""), nil
