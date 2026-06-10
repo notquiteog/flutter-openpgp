@@ -3340,6 +3340,7 @@ class KeyOptionsObjectBuilder extends fb.ObjectBuilder {
   final int? _compressionLevel;
   final int? _rsaBits;
   final int? _keyLifetimeSecs;
+  final bool? _hiddenRecipients;
 
   KeyOptionsObjectBuilder({
     Algorithm? algorithm,
@@ -3350,6 +3351,7 @@ class KeyOptionsObjectBuilder extends fb.ObjectBuilder {
     int? compressionLevel,
     int? rsaBits,
     int? keyLifetimeSecs,
+    bool? hiddenRecipients,
   })  : _algorithm = algorithm,
         _curve = curve,
         _hash = hash,
@@ -3357,12 +3359,13 @@ class KeyOptionsObjectBuilder extends fb.ObjectBuilder {
         _compression = compression,
         _compressionLevel = compressionLevel,
         _rsaBits = rsaBits,
-        _keyLifetimeSecs = keyLifetimeSecs;
+        _keyLifetimeSecs = keyLifetimeSecs,
+        _hiddenRecipients = hiddenRecipients;
 
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
-    fbBuilder.startTable(8);
+    fbBuilder.startTable(9);
     fbBuilder.addInt32(0, _algorithm?.value);
     fbBuilder.addInt32(1, _curve?.value);
     fbBuilder.addInt32(2, _hash?.value);
@@ -3371,6 +3374,7 @@ class KeyOptionsObjectBuilder extends fb.ObjectBuilder {
     fbBuilder.addInt32(5, _compressionLevel);
     fbBuilder.addInt32(6, _rsaBits);
     fbBuilder.addInt32(7, _keyLifetimeSecs);
+    fbBuilder.addBool(8, _hiddenRecipients);
     return fbBuilder.endTable();
   }
 

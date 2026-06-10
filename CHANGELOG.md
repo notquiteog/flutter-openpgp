@@ -1,3 +1,8 @@
+## 3.13.0
+- Add `KeyOptions.hiddenRecipients`: encrypt/encryptBytes emit anonymous (wildcard, zeroed key id) PKESK packets via go-crypto's openpgp/v2 `toHidden` path, so ciphertext no longer names which keys can decrypt it; decryption is unchanged (trial decryption, covered by new bridge gate tests)
+- Bridge: hand-rolled FlatBuffers KeyOptions gains the `hiddenRecipients` bool (slot 20); Dart builders and generated model extended to match
+- Rebuild Linux x86_64, all four Android ABIs, and the WASM bridge with the new option (macOS/iOS/Windows binaries must be rebuilt on their host OS)
+
 ## 3.12.4
 - Fix bridge response serialization so successful empty string/byte outputs are encoded as real response fields instead of looking absent on the Dart side
 - Fix web worker pending-request tracking so failed WASM reloads reject callers instead of leaving operations waiting for the Dart timeout

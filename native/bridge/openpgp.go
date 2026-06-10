@@ -15,6 +15,7 @@ import (
 	"github.com/ProtonMail/go-crypto/openpgp/clearsign"
 	pgperrors "github.com/ProtonMail/go-crypto/openpgp/errors"
 	"github.com/ProtonMail/go-crypto/openpgp/packet"
+	openpgpv2 "github.com/ProtonMail/go-crypto/openpgp/v2"
 	flatbuffers "github.com/google/flatbuffers/go"
 	"golang.org/x/text/encoding/ianaindex"
 	"golang.org/x/text/transform"
@@ -117,6 +118,10 @@ type keyOptions struct {
 	compressionLevel int32
 	rsaBits          int32
 	keyLifetimeSecs  int32
+	// hiddenRecipients encrypts with anonymous (wildcard) PKESKs: the
+	// recipient key IDs are zeroed so the ciphertext does not reveal who can
+	// read it. Decryption is unchanged — readers trial-decrypt with their key.
+	hiddenRecipients bool
 }
 
 type options struct {
@@ -152,6 +157,7 @@ func parseKeyOptions(t *flatbuffers.Table) *keyOptions {
 		compressionLevel: fbInt32(t, 14),
 		rsaBits:          fbInt32(t, 16),
 		keyLifetimeSecs:  fbInt32(t, 18),
+		hiddenRecipients: fbBool(t, 20),
 	}
 }
 
@@ -489,6 +495,91 @@ func callGenerate(payload []byte) ([]byte, error) {
 	return keyPairResponse(pub, priv, ""), nil
 }
 
+// pgpFileHintsV2 mirrors pgpFileHints for the openpgp/v2 API (its FileHints
+// replaced IsBinary with IsUTF8).
+func pgpFileHintsV2(fh *fileHints) *openpgpv2.FileHints {
+	if fh == nil {
+		return nil
+	}
+	hints := &openpgpv2.FileHints{
+		IsUTF8:   !fh.isBinary,
+		FileName: fh.fileName,
+	}
+	if fh.modTime != "" {
+		if t, err := time.Parse(time.RFC3339, fh.modTime); err == nil {
+			hints.ModTime = t
+		}
+	}
+	return hints
+}
+
+// readArmoredKeyV2 parses one or more armored keys with the openpgp/v2 API
+// (required by the hidden-recipients encrypt path — v2 entities are a
+// distinct type from v1's).
+func readArmoredKeyV2(armoredKey string) (openpgpv2.EntityList, error) {
+	reader := strings.NewReader(armoredKey)
+	var all openpgpv2.EntityList
+	for {
+		block, err := armor.Decode(reader)
+		if err == io.EOF || block == nil {
+			break
+		}
+		if err != nil {
+			break
+		}
+		entities, err := openpgpv2.ReadKeyRing(block.Body)
+		if err != nil {
+			continue
+		}
+		all = append(all, entities...)
+	}
+	if len(all) == 0 {
+		return nil, fmt.Errorf("no armored keys found")
+	}
+	return all, nil
+}
+
+func readAndUnlockPrivateKeyV2(armoredKey, passphrase string) (*openpgpv2.Entity, error) {
+	entities, err := readArmoredKeyV2(armoredKey)
+	if err != nil {
+		return nil, fmt.Errorf("reading private key: %w", err)
+	}
+	entity := entities[0]
+	if passphrase != "" {
+		if err := entity.DecryptPrivateKeys([]byte(passphrase)); err != nil {
+			return nil, fmt.Errorf("decrypting private key: %w", err)
+		}
+	}
+	return entity, nil
+}
+
+// encryptHiddenRecipients writes a message whose PKESK packets carry zeroed
+// (wildcard) key IDs — the ciphertext does not name who can decrypt it. All
+// recipients go through openpgp/v2's toHidden parameter; the v1 decrypt path
+// handles such messages by trial decryption (covered by the bridge tests).
+func encryptHiddenRecipients(out io.Writer, publicKey string, signed *entityFields, message []byte, ko *keyOptions, fh *fileHints) error {
+	recipients, err := readArmoredKeyV2(publicKey)
+	if err != nil {
+		return err
+	}
+	var signers []*openpgpv2.Entity
+	if signed != nil && signed.privateKey != "" {
+		signer, err := readAndUnlockPrivateKeyV2(signed.privateKey, signed.passphrase)
+		if err != nil {
+			return err
+		}
+		signers = []*openpgpv2.Entity{signer}
+	}
+	w, err := openpgpv2.Encrypt(out, nil, recipients, signers, pgpFileHintsV2(fh), buildConfig(ko))
+	if err != nil {
+		return err
+	}
+	if _, err = w.Write(message); err != nil {
+		return err
+	}
+	return w.Close()
+}
+
 func callEncrypt(payload []byte) ([]byte, error) {
 	t := rootTable(payload)
 	message := fbString(&t, 4)
@@ -496,6 +587,19 @@ func callEncrypt(payload []byte) ([]byte, error) {
 	ko := parseKeyOptions(fbTable(&t, 8))
 	signed := parseEntity(fbTable(&t, 10))
 	fh := parseFileHints(fbTable(&t, 12))
+
+	if ko != nil && ko.hiddenRecipients {
+		var buf bytes.Buffer
+		armorWriter, err := armor.Encode(&buf, "PGP MESSAGE", nil)
+		if err != nil {
+			return errStringResponse(err), nil
+		}
+		if err := encryptHiddenRecipients(armorWriter, publicKey, signed, []byte(message), ko, fh); err != nil {
+			return errStringResponse(err), nil
+		}
+		armorWriter.Close()
+		return stringResponse(buf.String(), ""), nil
+	}
 
 	recipients, err := readArmoredKey(publicKey)
 	if err != nil {
@@ -535,6 +639,14 @@ func callEncryptBytes(payload []byte) ([]byte, error) {
 	ko := parseKeyOptions(fbTable(&t, 8))
 	signed := parseEntity(fbTable(&t, 10))
 	fh := parseFileHints(fbTable(&t, 12))
+
+	if ko != nil && ko.hiddenRecipients {
+		var buf bytes.Buffer
+		if err := encryptHiddenRecipients(&buf, publicKey, signed, message, ko, fh); err != nil {
+			return errBytesResponse(err), nil
+		}
+		return bytesResponse(buf.Bytes(), ""), nil
+	}
 
 	recipients, err := readArmoredKey(publicKey)
 	if err != nil {

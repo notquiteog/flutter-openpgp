@@ -66,6 +66,11 @@ class KeyOptions {
   int? rsaBits;
   /// Key lifetime in seconds. 0 means the key does not expire.
   int? keyLifetimeSecs;
+
+  /// Encrypt with anonymous (wildcard) PKESK packets: the ciphertext does not
+  /// reveal which keys can decrypt it. Recipients trial-decrypt with their
+  /// own key — no decrypt-side changes needed.
+  bool? hiddenRecipients;
 }
 
 class KeyPair {

@@ -21,6 +21,7 @@ mixin OpenPGPRequestBuilders {
         hash: input.hash != null ? model.Hash.values[input.hash!.index] : null,
         rsaBits: input.rsaBits ?? 0,
         keyLifetimeSecs: input.keyLifetimeSecs ?? 0,
+        hiddenRecipients: input.hiddenRecipients ?? false,
       );
     }
     return builder;
