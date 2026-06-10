@@ -1,3 +1,6 @@
+## 3.13.1
+- Tag the CI-rebuilt binary set: macOS dylib, iOS/macOS xcframeworks, Windows DLL, Linux, Android, and WASM all carry the hiddenRecipients bridge (3.13.0's tag predated the workflow's binary commit)
+
 ## 3.13.0
 - Add `KeyOptions.hiddenRecipients`: encrypt/encryptBytes emit anonymous (wildcard, zeroed key id) PKESK packets via go-crypto's openpgp/v2 `toHidden` path, so ciphertext no longer names which keys can decrypt it; decryption is unchanged (trial decryption, covered by new bridge gate tests)
 - Bridge: hand-rolled FlatBuffers KeyOptions gains the `hiddenRecipients` bool (slot 20); Dart builders and generated model extended to match
