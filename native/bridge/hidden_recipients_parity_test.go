@@ -166,15 +166,17 @@ func TestHiddenPathParityWithDefaultPath(t *testing.T) {
 	}
 	t.Logf("parity: cipher=%v hash=%v on both paths", newProps.sessionCipher, newProps.sigHash)
 
-	// And an explicit cipher option must flow through the hidden path: with
-	// KeyOptions{cipher: AES256, hiddenRecipients: true} the session key is
-	// AES-256 (the key's preferences include it).
+	// And explicit cipher+hash options must flow through the hidden path: with
+	// KeyOptions{cipher: AES256, hash: SHA512, hiddenRecipients: true} the
+	// session key is AES-256 and the signature uses SHA-512 (the key's
+	// preferences include both). This is the exact option set the app passes
+	// for envelope slots.
 	var strongBuf bytes.Buffer
 	strongArmor, err := armor.Encode(&strongBuf, "PGP MESSAGE", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	strongKo := &keyOptions{cipher: 2 /* AES256 */, hiddenRecipients: true}
+	strongKo := &keyOptions{cipher: 2 /* AES256 */, hash: 3 /* SHA512 */, hiddenRecipients: true}
 	if err := encryptHiddenRecipients(strongArmor, pubBuf.String(), signed, []byte(plaintext), strongKo, nil); err != nil {
 		t.Fatalf("hidden AES-256 encrypt: %v", err)
 	}
@@ -183,7 +185,11 @@ func TestHiddenPathParityWithDefaultPath(t *testing.T) {
 	if strongProps.sessionCipher != packet.CipherAES256 {
 		t.Fatalf("explicit AES-256 option ignored by hidden path: got %v", strongProps.sessionCipher)
 	}
+	if strongProps.sigHash != crypto.SHA512 {
+		t.Fatalf("explicit SHA-512 option ignored by hidden path: got %v", strongProps.sigHash)
+	}
 	if strongProps.plaintext != plaintext {
 		t.Fatalf("AES-256 round trip mismatch: %q", strongProps.plaintext)
 	}
+	t.Logf("explicit options: cipher=%v hash=%v", strongProps.sessionCipher, strongProps.sigHash)
 }
